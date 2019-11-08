@@ -12,11 +12,16 @@ type CallQuery = {
   line_id?: number,
 };
 
+const deprecationMessage = 'ctid-ng is deprecated, please use calld methods now.';
+
 export default (client: ApiRequester, baseUrl: string) => ({
-  updatePresence: (presence: string): Promise<Boolean> =>
-    client.put(`${baseUrl}/users/me/presences`, { presence }, null, ApiRequester.successResponseParser),
+  updatePresence: (presence: string): Promise<Boolean> => {
+    console.warn(deprecationMessage);
+    return client.put(`${baseUrl}/users/me/presences`, { presence }, null, ApiRequester.successResponseParser);
+  },
 
   listMessages: (participantUuid: ?UUID, limit?: number): Promise<Array<ChatMessage>> => {
+    console.warn(deprecationMessage);
     const query: Object = {};
 
     if (participantUuid) {
@@ -31,12 +36,14 @@ export default (client: ApiRequester, baseUrl: string) => ({
   },
 
   sendMessage: (alias: string, msg: string, toUserId: string) => {
+    console.warn(deprecationMessage);
     const body = { alias, msg, to: toUserId };
 
     return client.post(`${baseUrl}/users/me/chats`, body, null, ApiRequester.successResponseParser);
   },
 
   makeCall: (extension: string, fromMobile: boolean, lineId: ?number) => {
+    console.warn(deprecationMessage);
     const query: CallQuery = {
       from_mobile: fromMobile,
       extension,
@@ -48,12 +55,18 @@ export default (client: ApiRequester, baseUrl: string) => ({
     return client.post(`${baseUrl}/users/me/calls`, query);
   },
 
-  cancelCall: (callId: number): Promise<Boolean> => client.delete(`${baseUrl}/users/me/calls/${callId}`),
+  cancelCall: (callId: number): Promise<Boolean> => {
+    console.warn(deprecationMessage);
+    return client.delete(`${baseUrl}/users/me/calls/${callId}`);
+  },
 
-  listCalls: (): Promise<Array<Call>> =>
-    client.get(`${baseUrl}/users/me/calls`).then(response => Call.parseMany(response.items)),
+  listCalls: (): Promise<Array<Call>> => {
+    console.warn(deprecationMessage);
+    return client.get(`${baseUrl}/users/me/calls`).then(response => Call.parseMany(response.items));
+  },
 
   relocateCall(callId: number, destination: string, lineId: ?number, contact?: ?string): Promise<Relocation> {
+    console.warn(deprecationMessage);
     const body: Object = {
       completions: ['answer'],
       destination,
@@ -75,38 +88,58 @@ export default (client: ApiRequester, baseUrl: string) => ({
     return client.post(`${baseUrl}/users/me/relocates`, body).then(response => Relocation.parse(response));
   },
 
-  listVoicemails: (): Promise<RequestError | Array<Voicemail>> =>
-    client.get(`${baseUrl}/users/me/voicemails`, null).then(response => Voicemail.parseMany(response)),
+  listVoicemails: (): Promise<RequestError | Array<Voicemail>> => {
+    console.warn(deprecationMessage);
+    return client.get(`${baseUrl}/users/me/voicemails`, null).then(response => Voicemail.parseMany(response));
+  },
 
-  deleteVoicemail: (voicemailId: number): Promise<Boolean> =>
-    client.delete(`${baseUrl}/users/me/voicemails/messages/${voicemailId}`, null),
+  deleteVoicemail: (voicemailId: number): Promise<Boolean> => {
+    console.warn(deprecationMessage);
+    return client.delete(`${baseUrl}/users/me/voicemails/messages/${voicemailId}`, null);
+  },
 
-  getPresence: (contactUuid: UUID): Promise<{ presence: string, user_uuid: string, xivo_uuid: string }> =>
-    client.get(`${baseUrl}/users/${contactUuid}/presences`, null),
+  getPresence: (contactUuid: UUID): Promise<{ presence: string, user_uuid: string, xivo_uuid: string }> => {
+    console.warn(deprecationMessage);
+    return client.get(`${baseUrl}/users/${contactUuid}/presences`, null);
+  },
 
-  getStatus: (lineUuid: UUID) => client.get(`${baseUrl}/lines/${lineUuid}/presences`, null),
+  getStatus: (lineUuid: UUID) => {
+    console.warn(deprecationMessage);
+    return client.get(`${baseUrl}/lines/${lineUuid}/presences`, null);
+  },
 
-  fetchSwitchboardHeldCalls: (switchboardUuid: UUID) =>
-    client.get(`${baseUrl}/switchboards/${switchboardUuid}/calls/held`, null),
+  fetchSwitchboardHeldCalls: (switchboardUuid: UUID) => {
+    console.warn(deprecationMessage);
+    return client.get(`${baseUrl}/switchboards/${switchboardUuid}/calls/held`, null);
+  },
 
-  holdSwitchboardCall: (switchboardUuid: UUID, callId: string) =>
-    client.put(
+  holdSwitchboardCall: (switchboardUuid: UUID, callId: string) => {
+    console.warn(deprecationMessage);
+    return client.put(
       `${baseUrl}/switchboards/${switchboardUuid}/calls/held/${callId}`,
       null,
       null,
       ApiRequester.successResponseParser,
-    ),
+    );
+  },
 
-  answerSwitchboardHeldCall: (switchboardUuid: UUID, callId: string) =>
-    client.put(`${baseUrl}/switchboards/${switchboardUuid}/calls/held/${callId}/answer`, null),
+  answerSwitchboardHeldCall: (switchboardUuid: UUID, callId: string) => {
+    console.warn(deprecationMessage);
+    return client.put(`${baseUrl}/switchboards/${switchboardUuid}/calls/held/${callId}/answer`, null);
+  },
 
-  fetchSwitchboardQueuedCalls: (switchboardUuid: UUID) =>
-    client.get(`${baseUrl}/switchboards/${switchboardUuid}/calls/queued`, null),
+  fetchSwitchboardQueuedCalls: (switchboardUuid: UUID) => {
+    console.warn(deprecationMessage);
+    return client.get(`${baseUrl}/switchboards/${switchboardUuid}/calls/queued`, null);
+  },
 
-  answerSwitchboardQueuedCall: (switchboardUuid: UUID, callId: string) =>
-    client.put(`${baseUrl}/switchboards/${switchboardUuid}/calls/queued/${callId}/answer`, null),
+  answerSwitchboardQueuedCall: (switchboardUuid: UUID, callId: string) => {
+    console.warn(deprecationMessage);
+    return client.put(`${baseUrl}/switchboards/${switchboardUuid}/calls/queued/${callId}/answer`, null);
+  },
 
   sendFax: (extension: string, fax: string, callerId: ?string = null) => {
+    console.warn(deprecationMessage);
     const headers = {
       'Content-type': 'application/pdf',
       'X-Auth-Token': client.token,

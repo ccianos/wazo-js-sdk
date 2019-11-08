@@ -163,9 +163,12 @@ client.callLogd.listCallLogs(offset, limit);
 client.callLogd.listCallLogsFromDate(from, number);
 ```
 
-### Calld
+### CtidNg
 
-Please note, ctidNg endpoint is obsolete but continue to work with old version. Please update your code.
+⚠️ Please note, ctidNg endpoint is obsolete but continue to work with old version. Please update your code.
+Please use `calld` instead,
+
+### Calld
 
 ```js
 client.calld.answerSwitchboardQueuedCall(switchboardUuid, callId);
