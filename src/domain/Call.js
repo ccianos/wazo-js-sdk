@@ -31,6 +31,7 @@ type CallArguments = {
   muted: boolean,
   status: string,
   startingTime: Date,
+  plain?: CallResponse,
 };
 
 export default class Call {
@@ -48,6 +49,7 @@ export default class Call {
   muted: boolean;
   status: string;
   startingTime: Date;
+  plain: ?CallResponse;
 
   static parseMany(plain: Array<CallResponse>): Array<Call> {
     return plain.map((plainCall: CallResponse) => Call.parse(plainCall));
@@ -67,6 +69,7 @@ export default class Call {
       onHold: plain.on_hold,
       status: plain.status,
       startingTime: moment(plain.creation_time).toDate(),
+      plain,
     });
   }
 
@@ -87,6 +90,7 @@ export default class Call {
     onHold,
     status,
     startingTime,
+    plain,
   }: CallArguments = {}) {
     this.id = id;
     this.sipCallId = sipCallId;
@@ -100,6 +104,7 @@ export default class Call {
     this.isCaller = isCaller;
     this.status = status;
     this.startingTime = startingTime;
+    this.plain = plain;
 
     // Useful to compare instead of instanceof with minified code
     this.type = 'Call';
