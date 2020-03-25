@@ -77,6 +77,9 @@ export const AGENT_STATUS_UPDATE = 'agent_status_update';
 export const AGENT_PAUSED = 'agent_paused';
 export const AGENT_UNPAUSED = 'agent_unpaused';
 
+const HEARTBEAT_INTERVAL = 5000;
+const HEARTBEAT_TIMEOUT = 3000;
+
 const BLACKLIST_EVENTS = [
   CHAT_MESSAGE_SENT,
   CHAT_MESSAGE_RECEIVED,
@@ -92,6 +95,11 @@ class WebSocketClient extends Emitter {
   events: Array<string>;
   options: Object;
   socket: ?ReconnectingWebSocket;
+  heartbeatDelayTimeout: TimeoutID;
+  heartbeatPongTiemout: TimeoutID;
+  heartbeatInterval: number;
+  heartbeatTimeout: number;
+  boundOnHeartBeat: Function;
 
   static eventLists: Array<string>;
 
@@ -113,6 +121,7 @@ class WebSocketClient extends Emitter {
     this.events = events;
     this.options = options;
     this.version = version;
+    this.boundOnHeartBeat = this._onHeartbeat.bind(this);
   }
 
   connect() {
@@ -166,6 +175,34 @@ class WebSocketClient extends Emitter {
     };
   }
 
+  startHeartbeat(heartbeatInterval: number = HEARTBEAT_INTERVAL, heartbeatTimeout: number = HEARTBEAT_TIMEOUT): any {
+    this.heartbeatInterval = heartbeatInterval;
+    this.heartbeatTimeout = heartbeatTimeout;
+
+    if (!this.socket) {
+      return null;
+    }
+
+    // We need the WS to be opened before doing heartbeat.
+    // When not connected, the `_ws` property doesn't exists in ReconnectingWebsocket.
+    if (!this.socket._ws) {
+      const restartHeartbeat = () => {
+        this.off('onopen', restartHeartbeat);
+        this.startHeartbeat(heartbeatInterval, this.heartbeatTimeout);
+      };
+
+      return this.on('onopen', restartHeartbeat);
+    }
+
+    this.heartbeatDelayTimeout = setTimeout(this._heartbeat.bind(this), this.heartbeatInterval);
+    return this.heartbeatDelayTimeout;
+  }
+
+  stopHeartbeat() {
+    clearTimeout(this.heartbeatDelayTimeout);
+    clearTimeout(this.heartbeatPongTiemout);
+  }
+
   close(): void {
     if (!this.socket) {
       return;
@@ -187,6 +224,29 @@ class WebSocketClient extends Emitter {
       // $FlowFixMe
       this.socket._url = this._getUrl();
     }
+  }
+
+  _heartbeat() {
+    const ws = this.socket ? this.socket._ws : null;
+    if (!ws) {
+      return this._onHeartbeatFailed();
+    }
+
+    ws.off('pong', this.boundOnHeartBeat);
+    ws.on('pong', this.boundOnHeartBeat);
+    ws.ping();
+
+    this.heartbeatPongTiemout = setTimeout(this._onHeartbeatFailed.bind(this), this.heartbeatTimeout);
+    return this.heartbeatPongTiemout;
+  }
+
+  _onHeartbeat() {
+    clearTimeout(this.heartbeatPongTiemout);
+    this.heartbeatDelayTimeout = setTimeout(this._heartbeat.bind(this), this.heartbeatInterval);
+  }
+
+  _onHeartbeatFailed() {
+    this.eventEmitter.emit(SOCKET_EVENTS.ON_ERROR, new Error('Heartbeat failed'));
   }
 
   _handleInitMessage(message: WebSocketMessage, sock: ReconnectingWebSocket) {

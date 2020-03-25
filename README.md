@@ -318,9 +318,18 @@ phone.unmerge(sipSessions: Array<SIP.InviteClientContext>)
 import { WazoWebSocketClient } from '@wazo/sdk';
 
 const ws = new WazoWebSocket({
-  host, // wazo websocket host
-  // valid Wazo token
+  host: '', // wazo websocket host
+  token: '',// valid Wazo token
+}, {
+  // Options (see https://github.com/pladaria/reconnecting-websocket#available-options)
 });
+
+// Starts sending ping requests to the server every `heartbeatInterval` ms and consider disconnected after `heartbeatTimeout` ms with pong response.
+// Ping/pong mechanism is a specification of the WebSocket protocol, in most case you don't have to implement it server side.
+ws.startHeartBeat(heartbeatInterval = 5000, heartbeatTimeout = 3000);
+
+// Stop
+ws.stopHeartbeat();
 
 // eventName can be on the of events here: http://documentation.wazo.community/en/stable/api_sdk/websocket.html
 ws.on('eventName', (data: mixed) => {
