@@ -232,6 +232,12 @@ class WebSocketClient extends Emitter {
       return this._onHeartbeatFailed();
     }
 
+    // ping is available in Websocket for the `ws` npm package for NodeJS
+    if (!ws.ping) {
+      console.warn('Can\'t do hearbeat on browser for now.');
+      return null;
+    }
+
     ws.off('pong', this.boundOnHeartBeat);
     ws.on('pong', this.boundOnHeartBeat);
     ws.ping();

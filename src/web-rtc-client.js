@@ -150,6 +150,12 @@ export default class WebRTCClient extends Emitter {
       });
     });
 
+    userAgent.transport.on('connected', () => {
+      setTimeout(() => {
+        this._startHeartbeat(userAgent);
+      }, 10000);
+    });
+
     return userAgent;
   }
 
@@ -602,6 +608,19 @@ export default class WebRTCClient extends Emitter {
 
   _hasVideo() {
     return this.videoEnabled;
+  }
+
+  _startHeartbeat(userAgent: UA) {
+    userAgent.transport.send("OPTIONS sip:f2godtln@127.0.0.1:47158;transport=WS SIP/2.0\n" +
+      "Via: SIP/2.0/WS 127.0.0.1:5039;rport;branch=z9hG4bKPjfc054a48-7bcf-46b5-8a55-d3758ab58723;alias\n" +
+      "From: <sip:39x6d34a@wazo>;tag=9d7ea1f5-abdf-4d1e-8df3-2a2023d45c6f\n" +
+      "To: <sip:f2godtln@127.0.0.1>\n" +
+      "Contact: <sip:39x6d34a@wazo:5060;transport=ws>\n" +
+      "Call-ID: ba6a6443-88e6-4420-a5db-1ebf56897b18\n" +
+      "CSeq: 32187 OPTIONS\n" +
+      "Max-Forwards: 70\n" +
+      "User-Agent: Wazo PBX\n" +
+      "Content-Length:  0");
   }
 
   sessionHasLocalVideo(sessionId: string): boolean {
