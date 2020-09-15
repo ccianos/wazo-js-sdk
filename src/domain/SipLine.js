@@ -50,20 +50,19 @@ export default class SipLine {
   line: Endpoint;
 
   static parse(plain: SipLineResponse): SipLine {
-    let { username, secret, host } = plain;
+    let { username, secret } = plain;
+    const { host } = plain;
 
     // Since 20.13 engine so options are now in section
     if (plain.auth_section_options) {
       // $FlowFixMe
-      const findOption = (options: string[][], name: string) => options.find(option => option[0] === name);
+      const findOption = (name: string) => plain.auth_section_options.find(option => option[0] === name);
 
-      const usernameOption = findOption(plain.auth_section_options, 'username');
-      const secretOption = findOption(plain.auth_section_options, 'password');
-      const hostOption = findOption(plain.endpoint_section_options, 'media_address');
+      const usernameOption = findOption('username');
+      const secretOption = findOption('password');
 
       username = usernameOption ? usernameOption[1] : '';
       secret = secretOption ? secretOption[1] : '';
-      host = hostOption ? hostOption[1] : '';
     }
 
     return new SipLine({
@@ -73,7 +72,7 @@ export default class SipLine {
       username,
       secret,
       type: plain.type,
-      host,
+      host: host || '',
       options: plain.options,
       endpointSectionOptions: plain.endpoint_section_options,
       links: plain.links,
