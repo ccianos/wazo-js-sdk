@@ -82,10 +82,10 @@ class Phone extends Emitter {
     options.media = options.media || { audio: true, video: false };
     options.uaConfigOverrides = options.uaConfigOverrides || {};
 
-    options.log = options.log || {};
-
     if (IssueReporter.enabled) {
       options.uaConfigOverrides.traceSip = true;
+
+      options.log = options.log || {};
 
       options.log.builtinEnabled = false;
       options.log.connector = (level, category, label, content) => {
@@ -121,7 +121,7 @@ class Phone extends Emitter {
     this.phone = null;
   }
 
-  async call(extension: string, withCamera: boolean = false, rawSipLine: ?SipLine = null) {
+  async call(extension: string, withCamera: boolean = false, rawSipLine: ?SipLine = null, videoOnly: boolean = false) {
     if (!this.phone) {
       return;
     }
@@ -179,6 +179,10 @@ class Phone extends Emitter {
 
   atxfer(sipSession: Inviter | Invitation) {
     return this.phone && this.phone.atxfer(sipSession);
+  }
+
+  reinvite(callSession: CallSession, newConstraints: Object = null) {
+    return this.phone && this.phone.sendReinvite(this.phone.findSipSession(callSession), newConstraints);
   }
 
   sendMessage(body: string, sipSession: Inviter | Invitation = null, contentType: string = 'text/plain') {
